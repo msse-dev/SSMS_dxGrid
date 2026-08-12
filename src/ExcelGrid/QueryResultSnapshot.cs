@@ -26,12 +26,11 @@ internal sealed class QueryResultSnapshot
 
     public static QueryResultSnapshot Capture(GridControl grid)
     {
-        var resultSet = (object)grid.GridStorage;
-        var viewField = resultSet.GetType().GetField("m_view", BindingFlags.NonPublic | BindingFlags.Instance)
-            ?? throw new InvalidOperationException("SSMS result storage view was not available.");
-        var storageView = viewField.GetValue(resultSet) as IStorageView
-            ?? throw new InvalidOperationException("SSMS result storage view was not readable.");
+        var storage = grid.GridStorage
+            ?? throw new InvalidOperationException("SSMS result storage was not available.");
+        var resultSet = (object)storage;
         var getFieldType = resultSet.GetType().GetMethod("GetFieldType", BindingFlags.Public | BindingFlags.Instance);
+        var getCellData = resultSet.GetType().GetMethod("GetCellData", BindingFlags.Public | BindingFlags.Instance);
 
         var table = new DataTable("SSMS Results") { CaseSensitive = false };
         var captions = new List<string>();
@@ -57,19 +56,21 @@ internal sealed class QueryResultSnapshot
             dataColumns.Add(dataColumn);
         }
 
-        var sourceRows = storageView.NumRows();
+        var sourceRows = storage.NumRows();
         var rowsToLoad = Math.Min(sourceRows, MaximumRows);
         const int chunkSize = 2_000;
         for (long start = 0; start < rowsToLoad; start += chunkSize)
         {
             var end = Math.Min(rowsToLoad - 1, start + chunkSize - 1);
-            storageView.EnsureRowsInBuf(start, end);
+            storage.EnsureRowsInBuf(start, end);
             for (var rowIndex = start; rowIndex <= end; rowIndex++)
             {
                 var row = table.NewRow();
                 for (var index = 0; index < dataColumns.Count; index++)
                 {
-                    var value = storageView.GetCellData(rowIndex, dataColumns[index]);
+                    var value = getCellData != null
+                        ? getCellData.Invoke(resultSet, new object[] { rowIndex, dataColumns[index] })
+                        : storage.GetCellDataAsString(rowIndex, dataColumns[index]);
                     row[index] = NormalizeValue(value, table.Columns[index].DataType);
                 }
                 table.Rows.Add(row);

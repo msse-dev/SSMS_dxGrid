@@ -6,9 +6,9 @@
     <AssemblyName>ExcelGrid.Ssms</AssemblyName>
     <RootNamespace>ExcelGrid.Ssms</RootNamespace>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
-    <Version>1.0.12</Version>
-    <AssemblyVersion>1.0.12.0</AssemblyVersion>
-    <FileVersion>1.0.12.0</FileVersion>
+    <Version>1.0.13</Version>
+    <AssemblyVersion>1.0.13.0</AssemblyVersion>
+    <FileVersion>1.0.13.0</FileVersion>
     <SsmsRoot Condition="'$(SsmsRoot)' == ''">C:\Program Files\Microsoft SQL Server Management Studio 22\Release</SsmsRoot>
     <SsmsIde>$(SsmsRoot)\Common7\IDE</SsmsIde>
     <DevExpressRoot Condition="'$(DevExpressRoot)' == ''">C:\Program Files\DevExpress 25.2\Components\Bin\Framework</DevExpressRoot>
@@ -20,10 +20,6 @@
     <Reference Include="System.Windows.Forms" />
     <Reference Include="Microsoft.SqlServer.GridControl">
       <HintPath>$(SsmsIde)\Microsoft.SqlServer.GridControl.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.SqlServer.DataStorage">
-      <HintPath>$(SsmsIde)\Microsoft.SqlServer.DataStorage.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.Text.Data">

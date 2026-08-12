@@ -13,10 +13,6 @@
       <HintPath>$(SsmsRoot)\Common7\IDE\Microsoft.SqlServer.GridControl.dll</HintPath>
       <Private>true</Private>
     </Reference>
-    <Reference Include="Microsoft.SqlServer.DataStorage">
-      <HintPath>$(SsmsRoot)\Common7\IDE\Microsoft.SqlServer.DataStorage.dll</HintPath>
-      <Private>true</Private>
-    </Reference>
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="DevExpress.XtraGrid.v25.2">
