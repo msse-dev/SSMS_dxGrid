@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>ExcelGrid.Tests</AssemblyName>
+    <SsmsRoot Condition="'$(SsmsRoot)' == ''">C:\Program Files\Microsoft SQL Server Management Studio 22\Release</SsmsRoot>
+    <DevExpressRoot Condition="'$(DevExpressRoot)' == ''">C:\Program Files\DevExpress 25.2\Components\Bin\Framework</DevExpressRoot>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\ExcelGrid\ExcelGrid.csproj" />
+    <Reference Include="Microsoft.SqlServer.GridControl">
+      <HintPath>$(SsmsRoot)\Common7\IDE\Microsoft.SqlServer.GridControl.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="Microsoft.SqlServer.DataStorage">
+      <HintPath>$(SsmsRoot)\Common7\IDE\Microsoft.SqlServer.DataStorage.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="DevExpress.XtraGrid.v25.2">
+      <HintPath>$(DevExpressRoot)\DevExpress.XtraGrid.v25.2.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="DevExpress.Data.v25.2"><HintPath>$(DevExpressRoot)\DevExpress.Data.v25.2.dll</HintPath><Private>true</Private></Reference>
+    <Reference Include="DevExpress.Utils.v25.2"><HintPath>$(DevExpressRoot)\DevExpress.Utils.v25.2.dll</HintPath><Private>true</Private></Reference>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011">
+  <Metadata>
+    <Identity Id="ExcelGrid.Ssms.2d7f51c5-6019-48ab-b833-a55da08aad71" Version="1.0.12" Language="en-US" Publisher="Local" />
+    <DisplayName>Excel Grid for SSMS (DevExpress)</DisplayName>
+    <Description xml:space="preserve">DevExpress-powered Excel-style sorting and filtering for SSMS query results.</Description>
+    <Tags>SSMS,SQL,results,grid,sort,filter</Tags>
+  </Metadata>
+  <Installation>
+    <InstallationTarget Id="Microsoft.VisualStudio.Ssms" Version="[22.0,23.0)">
+      <ProductArchitecture>amd64</ProductArchitecture>
+    </InstallationTarget>
+  </Installation>
+  <Dependencies>
+    <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" Version="[4.8,)" />
+  </Dependencies>
+  <Assets>
+    <Asset Type="Microsoft.VisualStudio.MefComponent" Path="ExcelGrid.Ssms.dll" />
+  </Assets>
+</PackageManifest>

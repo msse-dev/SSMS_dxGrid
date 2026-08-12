@@ -1,0 +1,74 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <AssemblyName>ExcelGrid.Ssms</AssemblyName>
+    <RootNamespace>ExcelGrid.Ssms</RootNamespace>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <Version>1.0.12</Version>
+    <AssemblyVersion>1.0.12.0</AssemblyVersion>
+    <FileVersion>1.0.12.0</FileVersion>
+    <SsmsRoot Condition="'$(SsmsRoot)' == ''">C:\Program Files\Microsoft SQL Server Management Studio 22\Release</SsmsRoot>
+    <SsmsIde>$(SsmsRoot)\Common7\IDE</SsmsIde>
+    <DevExpressRoot Condition="'$(DevExpressRoot)' == ''">C:\Program Files\DevExpress 25.2\Components\Bin\Framework</DevExpressRoot>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="Microsoft.SqlServer.GridControl">
+      <HintPath>$(SsmsIde)\Microsoft.SqlServer.GridControl.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Microsoft.SqlServer.DataStorage">
+      <HintPath>$(SsmsIde)\Microsoft.SqlServer.DataStorage.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Text.Data">
+      <HintPath>$(SsmsIde)\CommonExtensions\Microsoft\Editor\Microsoft.VisualStudio.Text.Data.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Text.Logic">
+      <HintPath>$(SsmsIde)\CommonExtensions\Microsoft\Editor\Microsoft.VisualStudio.Text.Logic.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Text.UI.Wpf">
+      <HintPath>$(SsmsIde)\CommonExtensions\Microsoft\Editor\Microsoft.VisualStudio.Text.UI.Wpf.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Text.UI">
+      <HintPath>$(SsmsIde)\CommonExtensions\Microsoft\Editor\Microsoft.VisualStudio.Text.UI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Utilities">
+      <HintPath>$(SsmsIde)\Microsoft.VisualStudio.Utilities.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.CoreUtility">
+      <HintPath>$(SsmsIde)\CommonExtensions\Microsoft\Editor\Microsoft.VisualStudio.CoreUtility.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="DevExpress.Data.v25.2"><HintPath>$(DevExpressRoot)\DevExpress.Data.v25.2.dll</HintPath><Private>true</Private></Reference>
+    <Reference Include="DevExpress.Data.Desktop.v25.2"><HintPath>$(DevExpressRoot)\DevExpress.Data.Desktop.v25.2.dll</HintPath><Private>true</Private></Reference>
+    <Reference Include="DevExpress.Drawing.v25.2"><HintPath>$(DevExpressRoot)\DevExpress.Drawing.v25.2.dll</HintPath><Private>true</Private></Reference>
+    <Reference Include="DevExpress.Printing.v25.2.Core"><HintPath>$(DevExpressRoot)\DevExpress.Printing.v25.2.Core.dll</HintPath><Private>true</Private></Reference>
+    <Reference Include="DevExpress.Utils.v25.2"><HintPath>$(DevExpressRoot)\DevExpress.Utils.v25.2.dll</HintPath><Private>true</Private></Reference>
+    <Reference Include="DevExpress.XtraEditors.v25.2"><HintPath>$(DevExpressRoot)\DevExpress.XtraEditors.v25.2.dll</HintPath><Private>true</Private></Reference>
+    <Reference Include="DevExpress.XtraGrid.v25.2"><HintPath>$(DevExpressRoot)\DevExpress.XtraGrid.v25.2.dll</HintPath><Private>true</Private></Reference>
+    <Reference Include="DevExpress.XtraLayout.v25.2"><HintPath>$(DevExpressRoot)\DevExpress.XtraLayout.v25.2.dll</HintPath><Private>true</Private></Reference>
+    <Reference Include="DevExpress.XtraPrinting.v25.2"><HintPath>$(DevExpressRoot)\DevExpress.XtraPrinting.v25.2.dll</HintPath><Private>true</Private></Reference>
+    <Reference Include="DevExpress.Sparkline.v25.2.Core"><HintPath>$(DevExpressRoot)\DevExpress.Sparkline.v25.2.Core.dll</HintPath><Private>true</Private></Reference>
+  </ItemGroup>
+
+  <Target Name="GenerateDevExpressRuntimeLicense" BeforeTargets="PrepareForBuild">
+    <MakeDir Directories="$(IntermediateOutputPath)" />
+    <Exec Command="&quot;C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8 Tools\lc.exe&quot; /target:$(AssemblyName).dll /complist:&quot;$(MSBuildProjectDirectory)\Properties\licenses.licx&quot; /outdir:&quot;$(MSBuildProjectDirectory)\obj\$(Configuration)\net48&quot; /i:&quot;$(DevExpressRoot)\DevExpress.XtraGrid.v25.2.dll&quot; /i:&quot;$(DevExpressRoot)\DevExpress.XtraEditors.v25.2.dll&quot; /i:&quot;$(DevExpressRoot)\DevExpress.Utils.v25.2.dll&quot; /i:&quot;$(DevExpressRoot)\DevExpress.Data.v25.2.dll&quot; /i:&quot;$(DevExpressRoot)\DevExpress.Data.Desktop.v25.2.dll&quot; /i:&quot;$(DevExpressRoot)\DevExpress.Drawing.v25.2.dll&quot; /i:&quot;$(DevExpressRoot)\DevExpress.Printing.v25.2.Core.dll&quot; /i:&quot;$(DevExpressRoot)\DevExpress.XtraPrinting.v25.2.dll&quot; /i:&quot;$(DevExpressRoot)\DevExpress.XtraLayout.v25.2.dll&quot; /i:&quot;$(DevExpressRoot)\DevExpress.Sparkline.v25.2.Core.dll&quot;" />
+    <ItemGroup>
+      <EmbeddedResource Include="$(MSBuildProjectDirectory)\obj\$(Configuration)\net48\excelgrid.ssms.dll.licenses">
+        <LogicalName>ExcelGrid.Ssms.dll.licenses</LogicalName>
+      </EmbeddedResource>
+    </ItemGroup>
+  </Target>
+</Project>

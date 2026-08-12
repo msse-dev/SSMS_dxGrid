@@ -1,0 +1,17 @@
+# Visual Studio / .NET build output
+.vs/
+.dotnet/
+**/bin/
+**/obj/
+*.user
+*.suo
+
+# Generated packages and local previews
+artifacts/
+*.vsix
+
+# Local tooling
+.idea/
+.vscode/
+TestResults/
+*.log
