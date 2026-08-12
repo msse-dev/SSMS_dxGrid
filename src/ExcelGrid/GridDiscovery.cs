@@ -183,7 +183,7 @@ internal sealed class DevExpressGridEnhancer : IDisposable
         }
         catch (Exception error)
         {
-            _replacement.ShowError(error.Message);
+            _replacement.ShowError(GetUsefulErrorMessage(error));
             ShowReplacement();
         }
         finally
@@ -269,6 +269,13 @@ internal sealed class DevExpressGridEnhancer : IDisposable
             tracker?.GetType().GetMethod("Reset", BindingFlags.Public | BindingFlags.Instance)?.Invoke(tracker, null);
         }
         catch { }
+    }
+
+    private static string GetUsefulErrorMessage(Exception error)
+    {
+        while (error is TargetInvocationException && error.InnerException != null)
+            error = error.InnerException;
+        return error.Message;
     }
 
     private static IntPtr MakeLParam(int x, int y) =>

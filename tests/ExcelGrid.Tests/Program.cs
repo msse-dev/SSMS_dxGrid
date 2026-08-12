@@ -157,16 +157,16 @@ internal static class Program
 
 internal sealed class FakeGridStorage : IGridStorage
 {
-    private readonly object[][] _rows;
+    // Matches QEResultSet's active adapter shape used by QueryResultSnapshot.
+    private readonly FakeStorageView m_view;
 
-    public FakeGridStorage(params object[][] rows) => _rows = rows;
-    public long NumRows() => _rows.LongLength;
-    public long EnsureRowsInBuf(long first, long last) => Math.Max(0, last - first + 1);
-    public object GetCellData(long row, int column) => _rows[row][column];
-    public Type GetFieldType(int column) => _rows.Length == 0 || _rows[0][column] == null
+    public FakeGridStorage(params object[][] rows) => m_view = new FakeStorageView(rows);
+    public long NumRows() => m_view.NumRows();
+    public long EnsureRowsInBuf(long first, long last) => m_view.EnsureRowsInBuf(first, last);
+    public Type GetFieldType(int column) => m_view.NumRows() == 0 || m_view.GetCellData(0, column) == null
         ? typeof(object)
-        : _rows[0][column].GetType();
-    public string GetCellDataAsString(long row, int column) => Convert.ToString(GetCellData(row, column)) ?? string.Empty;
+        : m_view.GetCellData(0, column).GetType();
+    public string GetCellDataAsString(long row, int column) => m_view.GetCellDataAsString(row, column);
     public int IsCellEditable(long row, int column) => 0;
     public Bitmap GetCellDataAsBitmap(long row, int column) => null!;
     public void GetCellDataForButton(long row, int column, out ButtonCellState state, out Bitmap bitmap, out string text)
@@ -178,4 +178,20 @@ internal sealed class FakeGridStorage : IGridStorage
     public GridCheckBoxState GetCellDataForCheckBox(long row, int column) => default;
     public void FillControlWithData(long row, int column, IGridEmbeddedControl control) { }
     public bool SetCellDataFromControl(long row, int column, IGridEmbeddedControl control) => false;
+}
+
+internal sealed class FakeStorageView : IStorageView
+{
+    private readonly object[][] _rows;
+
+    public FakeStorageView(params object[][] rows) => _rows = rows;
+    public long NumRows() => _rows.LongLength;
+    public long EnsureRowsInBuf(long first, long last) => Math.Max(0, last - first + 1);
+    public string GetCellDataAsString(long row, int column) => Convert.ToString(GetCellData(row, column)) ?? string.Empty;
+    public object GetCellData(long row, int column) => _rows[row][column];
+    public void DeleteRow(long row) => throw new NotSupportedException();
+    public IColumnInfo GetColumnInfo(int column) => null!;
+    public int NumColumns() => _rows.Length == 0 ? 0 : _rows[0].Length;
+    public bool IsStorageClosed() => false;
+    public void Dispose() { }
 }
