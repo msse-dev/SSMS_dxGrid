@@ -7,6 +7,7 @@ using DevExpress.XtraEditors;
 using DevExpress.XtraGrid;
 using DevExpress.XtraGrid.Columns;
 using DevExpress.XtraGrid.Views.Grid;
+using DevExpress.XtraGrid.Views.Grid.ViewInfo;
 
 namespace ExcelGrid.Ssms;
 
@@ -181,6 +182,8 @@ internal sealed class DevExpressResultsControl : UserControl
 
     private void GridMouseDown(object sender, MouseEventArgs e)
     {
+        if (e.Button == MouseButtons.Left && TrySelectAllFromCorner(e.Location)) return;
+
         if (e.Button != MouseButtons.Right) return;
         var hit = _view.CalcHitInfo(e.Location);
         var column = hit.Column;
@@ -202,6 +205,23 @@ internal sealed class DevExpressResultsControl : UserControl
             NativeContextMenuRequested?.Invoke(this,
                 new NativeContextMenuRequestEventArgs(nativeRow, nativeColumn, selectedCells, _grid.PointToScreen(e.Location)));
         }
+    }
+
+    private static bool IsSelectAllCorner(GridHitInfo hit) =>
+        (hit.HitTest == GridHitTest.ColumnButton && hit.Column == null) ||
+        (hit.HitTest == GridHitTest.RowIndicator && hit.RowHandle == GridControl.AutoFilterRowHandle);
+
+    internal bool TrySelectAllFromCorner(Point location)
+    {
+        if (!IsSelectAllCorner(_view.CalcHitInfo(location))) return false;
+        SelectAllVisibleCells();
+        return true;
+    }
+
+    internal void SelectAllVisibleCells()
+    {
+        _view.SelectAll();
+        _view.Invalidate();
     }
 
     internal bool TryMapNativeCell(int rowHandle, GridColumn column, out long nativeRow, out int nativeColumn)

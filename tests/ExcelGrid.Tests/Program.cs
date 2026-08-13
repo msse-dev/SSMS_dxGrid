@@ -15,6 +15,7 @@ internal static class Program
         {
             SnapshotReadsNativeStorageWithoutLegacyProxy();
             DevExpressGridActuallyFiltersAndSortsRows();
+            SelectAllCornerSelectsVisibleCells();
             DevExpressSurfaceIsHostedInsideNativeGrid();
             NativeContextMenuRelayCanRepeat();
             Console.WriteLine("All active ExcelGrid tests passed.");
@@ -99,6 +100,33 @@ internal static class Program
         Equal(System.Windows.Forms.DockStyle.Fill, replacement.Dock);
         Equal(true, replacement.Visible);
         Equal(true, native.Visible);
+    }
+
+    private static void SelectAllCornerSelectsVisibleCells()
+    {
+        var table = new DataTable();
+        table.Columns.Add("C0", typeof(string));
+        table.Columns.Add("C1", typeof(int));
+        table.Rows.Add("Heirloom", 30);
+        table.Rows.Add("Heritage Blue", 8);
+        table.Rows.Add("Heritage Choc", 9);
+        table.Rows.Add("Heritage Mixed", 14);
+
+        using var grid = new DevExpressResultsControl(true);
+        grid.Size = new Size(800, 300);
+        grid.CreateControl();
+        grid.SetData(table, new[] { "cBreed", "iBreed_PK" }, 4, false);
+        grid.PerformLayout();
+        System.Windows.Forms.Application.DoEvents();
+        Equal(true, grid.TrySelectAllFromCorner(new Point(5, 5)));
+        Equal(8, grid.View.GetSelectedCells().Length);
+
+        grid.View.ClearSelection();
+        grid.View.SetRowCellValue(DevExpress.XtraGrid.GridControl.AutoFilterRowHandle, grid.View.Columns[0], "Choc");
+        Equal(1, grid.View.DataRowCount);
+        Equal(true, grid.TrySelectAllFromCorner(new Point(5, 5)));
+        Equal(2, grid.View.GetSelectedCells().Length);
+        Equal("Heritage Choc", (string)grid.View.GetRowCellValue(grid.View.GetSelectedCells()[0].RowHandle, "C0"));
     }
 
     private static void NativeContextMenuRelayCanRepeat()

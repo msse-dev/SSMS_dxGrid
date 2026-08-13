@@ -8,6 +8,7 @@ Replaces the visible **Results to Grid** surface with a DevExpress grid in SQL S
 - Always-visible auto-filter row below the headers.
 - Typed sorting for numbers, dates, text, GUIDs, and other common SQL values.
 - Multiple filters, incremental search, multi-cell selection, copy, Best Fit, and Clear Filters.
+- Excel-style Select All from the grid's top-left header corner.
 - Automatic light/dark theme support with a high-contrast dark palette.
 - Native SSMS right-click menu integration, including commands contributed by SQL Prompt.
 - Filtering and sorting are local and never rewrite or rerun the SQL query.
