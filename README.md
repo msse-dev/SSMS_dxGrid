@@ -44,3 +44,13 @@ To uninstall, open **Extensions > Manage Extensions > Installed**, find **Excel 
 ## Compatibility note
 
 SSMS does not publish a supported results-grid extension point. This project reads the completed native result storage but does not replace or mutate that storage. An SSMS update that replaces the native grid may require an adapter update.
+
+## License
+
+The original code and documentation in this repository are available under the [MIT License with the Commons Clause License Condition v1.0](LICENSE).
+
+- You may use, copy, modify, and redistribute the project, including for internal business use.
+- You may not sell the software itself or a product or service whose value derives entirely or substantially from its functionality.
+- This is a source-available license, not an OSI-approved open-source license.
+
+DevExpress and Microsoft components are separately licensed and are not covered by this project license. See [Third-party notices](THIRD_PARTY_NOTICES.md).
