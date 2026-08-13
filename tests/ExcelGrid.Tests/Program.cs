@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Reflection;
 using ExcelGrid.Ssms;
 using Microsoft.SqlServer.Management.UI.Grid;
 
@@ -16,6 +17,7 @@ internal static class Program
             SnapshotReadsNativeStorageWithoutLegacyProxy();
             DevExpressGridActuallyFiltersAndSortsRows();
             SelectAllCornerSelectsVisibleCells();
+            NativeSelectionCompressionPreservesTabularCopy();
             DevExpressSurfaceIsHostedInsideNativeGrid();
             NativeContextMenuRelayCanRepeat();
             Console.WriteLine("All active ExcelGrid tests passed.");
@@ -164,12 +166,50 @@ internal static class Program
         Equal(true, nativeFocusedDuringRightClick);
     }
 
+    private static void NativeSelectionCompressionPreservesTabularCopy()
+    {
+        var cells = new List<NativeCell>();
+        for (long row = 0; row < 1_099; row++)
+            for (var column = 1; column <= 12; column++)
+                cells.Add(new NativeCell(row, column));
+
+        var compressed = DevExpressGridEnhancer.BuildNativeSelection(cells);
+        Equal(1, compressed.Count);
+        Equal(0L, compressed[0].Y);
+        Equal(1, compressed[0].X);
+        Equal(1_099L, compressed[0].Height);
+        Equal(12, compressed[0].Width);
+
+        using var native = CreateNativeGrid(
+            new object[] { "Heritage Blue", 8 },
+            new object[] { "Heritage Choc", 9 });
+        var selection = DevExpressGridEnhancer.BuildNativeSelection(new[]
+        {
+            new NativeCell(0, 1), new NativeCell(0, 2),
+            new NativeCell(1, 1), new NativeCell(1, 2)
+        });
+        native.SelectionType = GridSelectionType.CellBlocks;
+        native.SelectedCells = selection;
+
+        var copyMethod = typeof(GridControl).GetMethod("GetClipboardTextForSelectionBlock",
+            BindingFlags.Instance | BindingFlags.NonPublic)!;
+        var withoutHeaders = (string)copyMethod.Invoke(native, new object[] { 0, false })!;
+        var withHeaders = (string)copyMethod.Invoke(native, new object[] { 0, true })!;
+        Equal(true, withoutHeaders.Contains("Heritage Blue\t8"));
+        Equal(true, withoutHeaders.Contains("\r\nHeritage Choc\t9"));
+        Equal(true, withHeaders.StartsWith("cBreed\tiBreed_PK\r\n", StringComparison.Ordinal));
+    }
+
     private static GridControl CreateNativeGrid(params object[][] rows)
     {
         var native = new GridControl { Size = new Size(800, 300), Visible = true };
         native.AddColumn(new GridColumnInfo()); // SSMS row-number margin
-        native.AddColumn(new GridColumnInfo());
-        native.SetHeaderInfo(1, "cBreed", (Bitmap)null!);
+        var columnCount = rows.Length == 0 ? 1 : rows[0].Length;
+        for (var column = 0; column < columnCount; column++)
+        {
+            native.AddColumn(new GridColumnInfo());
+            native.SetHeaderInfo(column + 1, column == 0 ? "cBreed" : "iBreed_PK", (Bitmap)null!);
+        }
         native.GridStorage = new FakeGridStorage(rows);
         native.UpdateGrid(true);
         native.CreateControl();
@@ -194,7 +234,9 @@ internal sealed class FakeGridStorage : IGridStorage
     public Type GetFieldType(int column) => m_view.NumRows() == 0 || m_view.GetCellData(0, column) == null
         ? typeof(object)
         : m_view.GetCellData(0, column).GetType();
-    public string GetCellDataAsString(long row, int column) => m_view.GetCellDataAsString(row, column);
+    // GridControl passes its UI/storage column number (one-based after the row
+    // margin); QueryResultSnapshot reads the zero-based storage view directly.
+    public string GetCellDataAsString(long row, int column) => m_view.GetCellDataAsString(row, column - 1);
     public int IsCellEditable(long row, int column) => 0;
     public Bitmap GetCellDataAsBitmap(long row, int column) => null!;
     public void GetCellDataForButton(long row, int column, out ButtonCellState state, out Bitmap bitmap, out string text)

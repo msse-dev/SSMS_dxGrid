@@ -223,12 +223,12 @@ internal sealed class DevExpressGridEnhancer : IDisposable
         {
             // Keep SSMS's selection model in sync. SQL Prompt reads this native state
             // when it contributes commands to the standard results-grid menu.
-            var selected = new BlockOfCellsCollection();
-            if (selectedCells != null)
-                foreach (var cell in selectedCells)
-                    selected.Add(new BlockOfCells(cell.Row, cell.Column));
+            var selected = BuildNativeSelection(selectedCells);
             if (selected.Count == 0) selected.Add(new BlockOfCells(row, column));
-            _native.SelectionType = selected.Count == 1 ? GridSelectionType.SingleCell : GridSelectionType.CellBlocks;
+            var onlyBlock = selected.Count == 1 ? selected[0] : null;
+            _native.SelectionType = onlyBlock != null && onlyBlock.Width == 1 && onlyBlock.Height == 1
+                ? GridSelectionType.SingleCell
+                : GridSelectionType.CellBlocks;
             _native.SelectedCells = selected;
             _native.EnsureCellIsVisible(row, column);
 
@@ -258,6 +258,82 @@ internal sealed class DevExpressGridEnhancer : IDisposable
             ResetNativeCaptureTracker();
             ShowReplacement();
         }
+    }
+
+    internal static BlockOfCellsCollection BuildNativeSelection(IReadOnlyList<NativeCell>? cells)
+    {
+        var result = new BlockOfCellsCollection();
+        if (cells == null || cells.Count == 0) return result;
+
+        // DevExpress reports one item per selected cell. Passing those directly to
+        // SSMS makes a select-all operation thousands of one-cell blocks: its menu
+        // becomes slow and Copy flattens the blocks. Preserve display-row order,
+        // collapse each row into column runs, then merge consecutive native rows.
+        var rows = new List<KeyValuePair<long, SortedSet<int>>>();
+        var rowIndexes = new Dictionary<long, int>();
+        foreach (var cell in cells)
+        {
+            if (cell.Row < 0 || cell.Column < 0) continue;
+            if (!rowIndexes.TryGetValue(cell.Row, out var rowIndex))
+            {
+                rowIndex = rows.Count;
+                rowIndexes.Add(cell.Row, rowIndex);
+                rows.Add(new KeyValuePair<long, SortedSet<int>>(cell.Row, new SortedSet<int>()));
+            }
+            rows[rowIndex].Value.Add(cell.Column);
+        }
+
+        var previousRuns = new Dictionary<(int Left, int Right), BlockOfCells>();
+        foreach (var row in rows)
+        {
+            var runs = GetColumnRuns(row.Value);
+            var currentRuns = new Dictionary<(int Left, int Right), BlockOfCells>();
+            foreach (var run in runs)
+            {
+                if (previousRuns.TryGetValue(run, out var existing) && existing.Bottom + 1 == row.Key)
+                {
+                    existing.Height++;
+                    currentRuns.Add(run, existing);
+                    continue;
+                }
+
+                var block = new BlockOfCells(row.Key, run.Left)
+                {
+                    Width = run.Right - run.Left + 1
+                };
+                result.Add(block);
+                currentRuns.Add(run, block);
+            }
+            previousRuns = currentRuns;
+        }
+        return result;
+    }
+
+    private static List<(int Left, int Right)> GetColumnRuns(SortedSet<int> columns)
+    {
+        var runs = new List<(int Left, int Right)>();
+        var hasRun = false;
+        var left = 0;
+        var right = 0;
+        foreach (var column in columns)
+        {
+            if (!hasRun)
+            {
+                left = right = column;
+                hasRun = true;
+            }
+            else if (column == right + 1)
+            {
+                right = column;
+            }
+            else
+            {
+                runs.Add((left, right));
+                left = right = column;
+            }
+        }
+        if (hasRun) runs.Add((left, right));
+        return runs;
     }
 
     private void ResetNativeCaptureTracker()

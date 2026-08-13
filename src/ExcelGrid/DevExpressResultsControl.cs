@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
 using DevExpress.XtraEditors;
 using DevExpress.XtraGrid;
@@ -199,7 +200,9 @@ internal sealed class DevExpressResultsControl : UserControl
         if (TryMapNativeCell(hit.RowHandle, column, out var nativeRow, out var nativeColumn))
         {
             var selectedCells = new List<NativeCell>();
-            foreach (var cell in _view.GetSelectedCells())
+            foreach (var cell in _view.GetSelectedCells()
+                         .OrderBy(cell => _view.GetVisibleIndex(cell.RowHandle))
+                         .ThenBy(cell => cell.Column.VisibleIndex))
                 if (TryMapNativeCell(cell.RowHandle, cell.Column, out var selectedRow, out var selectedColumn))
                     selectedCells.Add(new NativeCell(selectedRow, selectedColumn));
             NativeContextMenuRequested?.Invoke(this,
