@@ -15,6 +15,7 @@ internal static class Program
         try
         {
             SnapshotReadsNativeStorageWithoutLegacyProxy();
+            OnlyQueryResultGridsAreEligibleForReplacement();
             DevExpressGridActuallyFiltersAndSortsRows();
             SelectAllCornerSelectsVisibleCells();
             NativeSelectionCompressionPreservesTabularCopy();
@@ -42,6 +43,15 @@ internal static class Program
         Equal("cBreed", snapshot.Captions[0]);
         Equal(typeof(string), snapshot.Table.Columns[0].DataType);
         Equal("Heritage Choc", snapshot.Table.Rows[1][0]);
+    }
+
+    private static void OnlyQueryResultGridsAreEligibleForReplacement()
+    {
+        using var administrativeGrid = CreateNativeGrid(new object[] { "Job step" });
+        Equal(false, GridDiscovery.IsQueryResultsGrid(administrativeGrid));
+
+        using var queryGrid = new Microsoft.SqlServer.Management.UI.VSIntegration.Editors.GridResultsGrid();
+        Equal(true, GridDiscovery.IsQueryResultsGrid(queryGrid));
     }
 
     private static void DevExpressGridActuallyFiltersAndSortsRows()
@@ -264,4 +274,11 @@ internal sealed class FakeStorageView : IStorageView
     public int NumColumns() => _rows.Length == 0 ? 0 : _rows[0].Length;
     public bool IsStorageClosed() => false;
     public void Dispose() { }
+}
+
+namespace Microsoft.SqlServer.Management.UI.VSIntegration.Editors
+{
+    // Matches the private SSMS query-results control name without taking a build
+    // dependency on SQLEditors.dll. Administrative grids do not use this type.
+    internal sealed class GridResultsGrid : GridControl { }
 }

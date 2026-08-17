@@ -12,6 +12,7 @@ namespace ExcelGrid.Ssms;
 internal static class GridDiscovery
 {
     private static readonly Dictionary<GridControl, DevExpressGridEnhancer> Enhancers = new();
+    private static readonly HashSet<GridControl> CandidateGrids = new();
     private static readonly HashSet<Control> WatchedControls = new();
     private static Timer? _timer;
 
@@ -28,6 +29,16 @@ internal static class GridDiscovery
 
     private static void Scan()
     {
+        // A future SSMS build may create a query grid before assigning QEResultSet.
+        // Recheck unattached candidates so the storage marker can qualify it later.
+        foreach (var grid in new List<GridControl>(CandidateGrids))
+        {
+            if (grid.IsDisposed)
+                CandidateGrids.Remove(grid);
+            else
+                Attach(grid);
+        }
+
         foreach (var pair in Enhancers)
         {
             if (!pair.Value.IsDisposed)
@@ -73,7 +84,11 @@ internal static class GridDiscovery
 
         control.ControlAdded += ControlAdded;
         control.Disposed += WatchedControlDisposed;
-        if (control is GridControl grid) Attach(grid);
+        if (control is GridControl grid)
+        {
+            CandidateGrids.Add(grid);
+            Attach(grid);
+        }
         foreach (Control child in control.Controls) WatchTree(child);
     }
 
@@ -86,16 +101,46 @@ internal static class GridDiscovery
 
     private static void WatchedControlDisposed(object sender, EventArgs e)
     {
-        if (sender is Control control) WatchedControls.Remove(control);
+        if (sender is Control control)
+        {
+            WatchedControls.Remove(control);
+            if (control is GridControl grid) CandidateGrids.Remove(grid);
+        }
     }
 
     private static void Attach(GridControl grid)
     {
-        if (grid.IsDisposed) return;
+        if (grid.IsDisposed || !IsQueryResultsGrid(grid)) return;
         if (!Enhancers.TryGetValue(grid, out var enhancer))
             Enhancers[grid] = new DevExpressGridEnhancer(grid);
         else
             enhancer.Refresh();
+    }
+
+    internal static bool IsQueryResultsGrid(GridControl grid)
+    {
+        const string gridTypeName =
+            "Microsoft.SqlServer.Management.UI.VSIntegration.Editors.GridResultsGrid";
+        const string gridInterfaceName =
+            "Microsoft.SqlServer.Management.QueryExecution.IGridControl2";
+        const string storageTypeName =
+            "Microsoft.SqlServer.Management.QueryExecution.QEResultSet";
+        const string storageInterfaceName =
+            "Microsoft.SqlServer.Management.QueryExecution.IGridResultSet";
+
+        var gridType = grid.GetType();
+        if (gridType.FullName == gridTypeName || Implements(gridType, gridInterfaceName)) return true;
+
+        var storageType = grid.GridStorage?.GetType();
+        return storageType != null &&
+               (storageType.FullName == storageTypeName || Implements(storageType, storageInterfaceName));
+    }
+
+    private static bool Implements(Type type, string interfaceName)
+    {
+        foreach (var contract in type.GetInterfaces())
+            if (contract.FullName == interfaceName) return true;
+        return false;
     }
 
     private delegate bool EnumWindowsProc(IntPtr hwnd, IntPtr lParam);
